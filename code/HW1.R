@@ -33,7 +33,7 @@ ts03 <- ad[, 1, drop = FALSE]
 ad1 <- as.numeric(ad)
 mean <- rowMeans(ad[,2:5])
 median <- rowMedians(as.matrix(ad[,2:5]))
-Q1Q3 <- t(apply(ad, 1, quantile, c(0.1, 0.3)))
+Q1Q3 <- t(apply(ad, 1, quantile, c(0.25, 0.75)))
 Q1 <- t(apply(ad, 1, quantile, 0.1))
 q1 <- quantile(ad[], na.rm = T, 0.1)
 
@@ -72,13 +72,57 @@ ggplot(ad_new, aes(x = Year, y = mean)) +
          title = "Cluster 3") +
     scale_color_manual(name = "Legend", values = colors)
     
-
+    
+# real code
+    
+    colors <- c("mean" = "black", "median" = "dark grey", "Q1&Q3" = "light blue")
     ggplot(ad_new, aes(x = Year, y = mean)) +
-        geom_ribbon(ad_new, mapping = aes(ymax = ad_new[,7], ymin = ad_new[,8]), fill = "light blue", alpha = 0.5) +
+        geom_ribbon(ad_new, 
+                    mapping = aes(ymax = ad_new[,8], ymin = ad_new[,9]), fill = "light blue", alpha = 0.5) +
         geom_line(linetype = "solid", size = 0.8, color = "black") +
-        geom_point(size = 2, shape = 21, color = "black") +
-        geom_line(size = 0.8, aes(y = median), color = "grey") +
+        geom_point(shape = 21, size = 2, color = "black") +
+        geom_line(size = 0.8, aes(y = median, color = "median")) +
+        labs(y = "Attainment deficit (%)", 
+             title = "Cluster 3") +
+        scale_color_manual(name = "legend", 
+                           labels = c("mean", "median", "Q1&Q3"),
+                           values = c("mean" = "black", "median" = "dark grey", "Q1&Q3" = "light blue")) +
+        scale_shape_manual(name = "legend",
+                           labels = c("mean", "median", "Q1&Q3"),
+                           values = c("mean" = 21, "median" = NA, "Q1&Q3" = NA)) +
+        guides(colour = guide_legend(override.aes = list(
+            linetype = c("solid", "solid", "solid"),
+            shape = c(21, NA, NA),
+            color = c("black", "dark grey", "light blue")
+        )))
+        theme_bw() +
+        theme(axis.line = element_line(color = 'black'),
+              plot.background = element_blank(),
+              panel.grid.major.x = element_blank(),
+              panel.grid.minor.x = element_blank(),
+              panel.grid.major.y = element_line(size = 0.3, color = "light grey"),
+              panel.grid.minor.y = element_line(size = 0.3, color = "light grey"),
+              panel.border = element_blank()) +
+        scale_x_continuous(breaks = seq(1985, 2015, 5), limits = c(1985, 2015)) +
+        scale_y_continuous(breaks = seq(-80, 0, 20), limits = c(-80, 0)) 
+    
+colors <- c("mean" = "black", "median" = "dark grey", "Q1Q3" = "light blue")
+    ggplot(ad_new, aes(x = Year, y = mean, color = "mean", linetype = "solid", size = 0.8 )) +
+        geom_ribbon(ad_new, mapping = aes(ymax = ad_new[,8], ymin = ad_new[,9]), fill = "light blue", alpha = 0.5) +
+        geom_point(size = 2, shape = 21, color = "black", show.legend = T) +
+        geom_line(size = 0.8, aes(y = median, color = "median")) +
     labs(y = "Attainment deficit (%)", 
          title = "Cluster 3") +
-        theme_bw()
-        scale_color_manual(name = "Legend", values = colors)
+        scale_color_manual(values = colors) +
+        theme_bw() +
+        theme(axis.line = element_line(color = 'black'),
+              plot.background = element_blank(),
+              panel.grid.major.x = element_blank(),
+              panel.grid.minor.x = element_blank(),
+              panel.grid.major.y = element_line(size = 0.3, color = "light grey"),
+              panel.grid.minor.y = element_line(size = 0.3, color = "light grey"),
+              panel.border = element_blank()) +
+        scale_x_continuous(breaks = seq(1985, 2015, 5), limits = c(1985, 2015)) +
+        scale_y_continuous(breaks = seq(-80, 0, 20), limits = c(-80, 0)) 
+        
+    

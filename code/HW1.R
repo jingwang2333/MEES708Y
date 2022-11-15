@@ -92,9 +92,10 @@ ggplot(ad_new, aes(x = Year, y = mean)) +
                            values = c("mean" = 21, "median" = NA, "Q1&Q3" = NA)) +
         guides(colour = guide_legend(override.aes = list(
             linetype = c("solid", "solid", "solid"),
-            shape = c(21, NA, NA),
-            color = c("black", "dark grey", "light blue")
-        )))
+            color = c("black", "dark grey", "light blue"))),
+        shape = guide_legend(override.aes = list(
+            shape = c(21, NA, NA)))
+        ) +
         theme_bw() +
         theme(axis.line = element_line(color = 'black'),
               plot.background = element_blank(),
@@ -125,4 +126,40 @@ colors <- c("mean" = "black", "median" = "dark grey", "Q1Q3" = "light blue")
         scale_x_continuous(breaks = seq(1985, 2015, 5), limits = c(1985, 2015)) +
         scale_y_continuous(breaks = seq(-80, 0, 20), limits = c(-80, 0)) 
         
+    
+    
+    # use base R to plot
+    plot(ad_new$Year, ad_new$mean, type = "n",
+         las = 1, cex = 1, ylim = c(-82, 0),
+         xlab = "Year", ylab = "Attainment deficit(%)",
+         main = "Cluster 3")
+    abline(h = c(0, -20, -40, -60, -80),
+           lty = 1, lwd = 1 , col = "lightgrey")
+    polygon(c(1985:2014, 2014:1985), c(ad_new$'25%',rev(ad_new$'75%')),
+            col = 13, border = NA)
+    points(ad_new$Year, ad_new$mean, type = "o",
+           col = "black", lwd = 2)
+    lines(ad_new$Year, ad_new$median, col = 16, lwd = 2)
+    legend("bottomleft", legend = c("Average", "Median", "Q1 & Q3"),
+           bty = "o", bg = "white",
+           lwd = c(2, 2, NA), col = c("black", 16, 13),
+           pch = c(1, NA, 15))
+    
+    # write the function
+    
+    plot(ad_new$Year, ad_new$mean, type = "n",
+         las = 1, cex = 1, ylim = c(-82, 0),
+         xlab = "Year", ylab = "Attainment deficit(%)",
+         main = "Cluster 3")
+    abline(h = c(0, -20, -40, -60, -80),
+           lty = 1, lwd = 1 , col = "lightgrey")
+    polygon(c(1985:2014, 2014:1985), c(ad_new$'25%',rev(ad_new$'75%')),
+            col = 13, border = NA)
+    points(ad_new$Year, ad_new$mean, type = "o",
+           col = "black", lwd = 2)
+    lines(ad_new$Year, ad_new$median, col = 16, lwd = 2)
+    legend("bottomleft", legend = c("Average", "Median", "Q1 & Q3"),
+           bty = "o", bg = "white",
+           lwd = c(2, 2, NA), col = c("black", 16, 13),
+           pch = c(1, NA, 15))
     

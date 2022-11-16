@@ -3,7 +3,9 @@ library(ggplot2)
 function(ggplot2)
 install.packages("matrixStats")
 library(matrixStats)
-    
+library(tidyr)
+install.packages("xts")
+library(xts)
     
     
     
@@ -78,58 +80,85 @@ ad <- cbind(ad, mean, median, Q1Q3)
         scale_x_continuous(breaks = seq(1985, 2015, 5), limits = c(1985, 2015)) +
         scale_y_continuous(breaks = seq(-80, 0, 20), limits = c(-80, 0)) 
     
-
+ad[-1]
     rownames(ad)
     
+    a
+    mean <- rowMeans(a)
+    mean <- rowMeans(a, na.rm = TRUE)
+    median <- rowMedians(as.matrix(a))
+    Q1Q3 <- t(apply(a, 1, quantile, c(0.25, 0.75)))
+    a <- cbind(a, mean, median, Q1Q3)
+    
+    ad2 <- xts(ad)
+    
+    
     # use base R to plot
-    plot(rownames(ad), ad$mean, type = "n",
-         las = 1, cex = 1, ylim = c(-82, 0),
+    time(ad)
+    x <- time(a)
+    a <- as.data.frame(a)
+    plot(x, a$mean, type = "n",
+         las = 1, cex = 1,
          xlab = "Year", ylab = "Attainment deficit(%)",
          main = "Cluster 3")
-    abline(h = c(0, -20, -40, -60, -80),
+    abline(h = range(a$mean),
            lty = 1, lwd = 1 , col = "lightgrey")
-    polygon(c(rownames(ad), rev(rownames(ad))), c(ad$'25%',rev(ad$'75%')),
+    polygon(c(x, rev(x)), c(a$'Q1Q3.25%',rev(a$'Q1Q3.75%')),
             col = 13, border = NA)
-    points(rownames(ad), ad$mean, type = "o",
-           col = "black", lwd = 2)
-    lines(rownames(ad), ad$median, col = 16, lwd = 2)
+    points(x, a$mean, type = "o",
+           col = "black", lwd = 0.5)
+    lines(x, a$median, col = 16, lwd = 2)
     legend("bottomleft", legend = c("Average", "Median", "Q1 & Q3"),
            bty = "o", bg = "white",
-           lwd = c(2, 2, NA), col = c("black", 16, 13),
+           lwd = c(0.5, 2, NA), col = c("black", 16, 13),
            pch = c(1, NA, 15))
    
-    # write the function
-   myplot <- function(df, title, plotmean, color1, color2, color3){
-           if(ncol(df) > 1) {
-               df <- as.data.frame(df)
+    ######### write the function
+    
+   myplot <- function(df, title, plotmean = FALSE, color1, color2, color3) {
+           df <- as.data.frame(df)
+           if ( ncol(df) > 1) {
+               is.na(df)
                mean <- rowMeans(df, na.rm = TRUE)
                median <- rowMedians(as.matrix(df), na.rm = TRUE)
-               Q1Q3 <- t(apply(df, 1, quantile, c(0.25, 0.75)))
+               Q1Q3 <- t(apply(df, 1, quantile, c(0.25, 0.75), na.rm = TRUE))
                df <- cbind(df, mean, median, Q1Q3)
             plot(rownames(df), df$mean, type = "n",
-                 las = 1, cex = 1,
+                 las = 1, cex = 1, ylim = ylim, 
                  xlab = "Year", ylab = "Attainment deficit(%)",
                  main = title)
-            abline(lty = 1, lwd = 1 , col = "lightgrey")
-            polygon(c(rownames(df), rev(rownames(df))), c(df$'25%',rev(df$'75%')),
-                    col = color3, border = NA)
-            points(rownames(df), df$mean, type = "o",
-                   col = color1, lwd = 2)
-            lines(rownames(df), df$median, col = color2, lwd = 2)
-            legend("bottomleft", legend = c("Average", "Median", "Q1 & Q3"),
-                   bty = "o", bg = "white",
-                   lwd = c(2, 2, NA), col = c(color1, color2, color3),
-                   pch = c(1, NA, 15))
+            abline(
+                    lty = 1, lwd = 1 , col = "lightgrey")
+            if (plotmean) {
+                polygon(c(rownames(df), rev(rownames(df))), c(df$'25%',rev(df$'75%')),
+                        col = color3, border = NA)
+                points(rownames(df), df$mean, type = "o",
+                       col = color1, lwd = 2)
+                lines(rownames(df), df$median, col = color2, lwd = 2)
+                legend("bottomleft", legend = c("Average", "Median", "Q1 & Q3"),
+                       bty = "o", bg = "white",
+                       lwd = c(2, 2, NA), col = c(color1, color2, color3),
+                       pch = c(1, NA, 15))
+            } else {
+                polygon(c(rownames(df), rev(rownames(df))), c(df$'25%',rev(df$'75%')),
+                        col = color3, border = NA)
+                lines(rownames(df), df$median, col = color2, lwd = 2)
+                legend("bottomleft", legend = c( NA, "Median", "Q1 & Q3"),
+                       bty = "o", bg = "white",
+                       lwd = c(NA, 2, NA), col = c(NA, color2, color3),
+                       pch = c(NA, NA, 15))
+            }
            } else {
                return("It cannot calculate quantiles per time point")
        }
    }
     
-   myplot(ts03, "tsplot", "black", "yellow", "pink")
+   myplot(ad_na, "tsplot", plotmean = TRUE, "red", "yellow", "pink")
+   
    d <- c(11,2,3,2,5,3,5)
  ?polygon
  ?rev
-  class(ts01)
+  class(EuStockMarkets )
   a <-  EuStockMarkets 
   class(a)
 is.matrix(EuStockMarkets)
@@ -137,3 +166,20 @@ is.data.frame(ts03)
 is.numeric(ts03) 
 as.data.frame(a)
 ncol(EuStockMarkets)
+time(EuStockMarkets)
+ad1 <- xts()
+mean <- apply(a, 1, mean, na.rm = TRUE)
+dim(a)
+is.vector(ad)
+
+a <- EuStockMarkets
+time(a)
+class(a)
+rownames(a)
+?rownames
+?ts
+rownames(ad[,1])
+ad2 <- ts(ad, start = 1985)
+time(ad2)
+
+?xts

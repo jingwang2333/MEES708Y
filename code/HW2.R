@@ -15,7 +15,7 @@ a <- untar(download.packages(pkgs = "funtimes",
                         type = "source")[,2])
 
 
-ccf_boot <- function(x, y, lag.max = NULL, 
+ccf_boot_new <- function(x, y, lag.max = NULL, 
                      plot = c("Pearson", "Spearman", "none"),
                      level = 0.95, B = 1000, ...)
 {
@@ -35,6 +35,7 @@ ccf_boot <- function(x, y, lag.max = NULL,
         stop("number of bootstrap resamples B must be positive.")
     }
     plt <- match.arg(plot)
+    
     ### Function
     xrank <- rank(x)
     yrank <- rank(y)
@@ -64,7 +65,9 @@ ccf_boot <- function(x, y, lag.max = NULL,
     Zy <- Zy - mean(Zy)
     
     ### Bootstrap
-    CCFs <- sapply(1:B, function(b) {
+    library(parallel)
+    cl <- parallel::makeCluster(parallel::detectCores())
+    CCFs <- parallel::parSapply(cl, 1:B, function(b) {
         xboot <- arima.sim(list(order = c(length(phetax), 0, 0), ar = phetax), n = nx, 
                            innov = sample(Zx, size = nx, replace = TRUE))
         yboot <- arima.sim(list(order = c(length(phetay), 0, 0), ar = phetay), n = ny, 
@@ -90,6 +93,7 @@ ccf_boot <- function(x, y, lag.max = NULL,
     RESULT <- data.frame(Lag = lags,
                          rP = rP, pP = pP, lowerP = crP[1,], upperP = crP[2,], #Pearson
                          rS = rS, pS = pS, lowerS = crS[1,], upperS = crS[2,]) #Spearman
+    stopCluster(cl)
     ### Plotting
     if (plt == "Pearson") {
         TMP <- RESULT[,grepl("P", names(RESULT))]
@@ -117,12 +121,40 @@ ccf_boot <- function(x, y, lag.max = NULL,
 }
 
 Sys.time(ccf_boot(x,y))
-system.time(ccf_boot(x,y))
+system.time(ccf_boot_new(x,y))
 ccf_boot(x,y)
 
-
-start_time <- Sys.time()
+Rprof(tmp <- tempfile())
 ccf_boot(x,y)
-end_time <- Sys.time()
+Rprof(NULL)
+summaryRprof(tmp)
 
-end_time - start_time
+d = summaryRprof(tmp)
+d$by.total[order(d$by.total$self.pct),]
+
+
+library(parallel)
+profvis(ccf_boot(x,y))
+
+
+system.time(
+    sapply(1:1000, function(i){
+        x = rnorm(100000)
+        mean(x)/sd(x)
+    })
+    )
+cl <- parallel::makeCluster(parallel::detectCores())
+
+system.time(
+    parallel::parSapply(cl, 1:1000, function(i){
+        x = rnorm(100000)
+        mean(x) / sd(x)
+    })
+)
+
+?parallel::par
+
+?sapply
+?ccf_boot
+ccf_boot(car)
+iris
